@@ -13,9 +13,7 @@ import os
 import time
 import csv
 import argparse
-import subprocess
 import socket
-import sys
 
 def sharedPrefixLength(s1, s2):
     # Find the shared prefix length between s1 and s2
