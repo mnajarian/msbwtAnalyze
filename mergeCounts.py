@@ -8,20 +8,20 @@ import os
 
 
 def mergeFiles(countFiles, probesDir, outDir):
-    print countFiles
+    print os.path.basename(countFiles)
     resultList = []
-    for cf in glob.glob(countFiles):
+    for cf in glob.glob(countFiles+'/*'):
         countdf = pandas.read_csv(cf)
         probedf = pandas.read_csv(probesDir+'/'+os.path.basename(cf))
         joindf = probedf.join(countdf)
         resultList.append(joindf)
     result = pandas.concat(resultList, ignore_index=True)
-    result.to_csv(outDir+'/'+os.path.basename(cf))
+    result.to_csv(outDir+'/'+os.path.basename(countFiles)+'.csv')
 
 
 
 def merge(countsDir, probesDir, outDir):
-    for countFiles in glob.glob(countsDir):
+    for countFiles in glob.glob(countsDir+'/*'):
         mergeFiles(countFiles, probesDir, outDir)
 
 
