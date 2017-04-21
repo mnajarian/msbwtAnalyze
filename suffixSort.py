@@ -2,7 +2,7 @@ import csv
 import argparse
 import itertools
 import numpy
-import os
+import time
 
 def bwtsort(atup, btup):
     aseq = atup[0]
@@ -30,18 +30,21 @@ def gatherProbes(pf):
 	    probes.append((row[0], row[1], row[2]))
     return probes
 
-def generateProbeFiles(pf, oDir):
+def generateProbeFiles(pf, oFile):
+    startTime = time.time()
+    print 'Started: {}'.format(startTime)
     probes = gatherProbes(pf)
     probeList = sorted(probes, cmp=bwtsort)
-    fp = open(oDir+"/%sSorted.csv" % os.path.splitext(os.path.basename(pf))[0], 'w')
+    fp = open(oFile, 'w')
     fp.write("probeseq,vid,ptype\n")
     for i in xrange(len(probeList)):
         fp.write("%s,%s,%s\n" % probeList[i])
     fp.close()
+    print 'Wrote file: {}'.format(time.time()-startTime)
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('probeFile', help='File of probes in format: sequence, id, type')
-    parser.add_argument('outDir', help='Out directory for probe file')
+    parser.add_argument('outFile', help='Path to output sorted probe file')
     args = parser.parse_args()
-    generateProbeFiles(args.probeFile, args.outDir)
+    generateProbeFiles(args.probeFile, args.outFile)
