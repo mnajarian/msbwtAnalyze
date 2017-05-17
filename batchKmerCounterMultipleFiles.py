@@ -18,7 +18,9 @@ import socket
 
 def generate_counts(bwtfile, probe_files, out_dir):
     msbwt = MultiStringBWT.loadBWT(bwtfile)
-    p_files = glob.glob(probe_files+'/*')
+    startTime = time.time()
+    print 'Started: {}'.format(startTime)
+    p_files = sorted(glob.glob(probe_files+'/*'))
     for probe_file in p_files:
         sixmer = os.path.splitext(probe_file)[0][-6:]
         if os.path.isfile('{}/{}'.format(out_dir, os.path.basename(probe_file))):
@@ -46,6 +48,8 @@ def generate_counts(bwtfile, probe_files, out_dir):
                 wr.writerows(counts)
             finish = time.time()
             print 'Wrote file: {}'.format(finish-start)
+    finish = time.time()
+    print 'Wrote all files: {}'.format(finish-startTime)
     
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
