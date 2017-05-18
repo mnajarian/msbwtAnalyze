@@ -43,9 +43,9 @@ def gatherProbes(pf):
     return probes
 
 def generate_counts(bwtfile, probe_file, out_file):
+    msbwt = MultiStringBWT.loadBWT(bwtfile)
     start = time.time()
     print 'Started: {}'.format(start)
-    msbwt = MultiStringBWT.loadBWT(bwtfile)
     probes = gatherProbes(probe_file)
     probesSorted = sorted(probes, cmp=bwtsort)
     counts = []

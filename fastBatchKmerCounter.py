@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 
 ## --- msbwtAnalyze/fastBatchKmerCounter.py --- ##
-##      Date: 17 March 2017
+##      Date: 18 May 2017
 ##      Purpose: given a single probe file, query an msbwt using a fast stack implementation 
 
 import pysam
@@ -14,6 +14,33 @@ import time
 import csv
 import argparse
 import socket
+import itertools
+
+def bwtsort(atup, btup):
+    aseq = atup[0]
+    bseq = btup[0]
+    for i in xrange(len(aseq)):
+        abase = aseq[-1-i]
+        bbase = bseq[-1-i]
+        if (abase > bbase):
+            return 1
+        elif (abase < bbase):
+            return -1
+    else:
+        if (atup[1] > btup[1]):
+            return 1
+        elif (atup[1] < btup[1]):
+            return -1
+    return 0
+
+def gatherProbes(pf):
+    probes = []
+    with open(pf, 'rb') as f:
+        reader = csv.reader(f)
+        next(reader)
+        for row in reader:
+            probes.append((row[0], row[1], row[2]))
+    return probes
 
 def sharedPrefixLength(s1, s2):
     # Find the shared prefix length between s1 and s2
@@ -70,8 +97,9 @@ def generate_counts(bwtfile, probe_file, out_file):
     msbwt = MultiStringBWT.loadBWT(bwtfile)
     start = time.time()
     print 'Started: {}'.format(start)
-    df = pd.read_csv(probe_file)
-    rev = [''.join([s for s in reversed(t)]) for t in df['probeseq']]
+    probes = gatherProbes(probe_file)
+    probesSorted = sorted(probes, cmp=bwtsort)
+    rev = [''.join([s for s in reversed(t)]) for t in [m[0] for m in probesSorted]]
     # PREPROCESSING STEP: for each query, get prefix index shared with NEXT query
     shared = get_shared_prefixes(rev)
     stack = []
@@ -81,11 +109,11 @@ def generate_counts(bwtfile, probe_file, out_file):
     indices.append([lo, hi])
     counts = []
     counter = 0
-    for row in df.itertuples():
-        q = ''.join([s for s in reversed(row[1])])
+    for row in probesSorted:
+        q = ''.join([s for s in reversed(row[0])])
         shared_next = shared[counter]
         stack, indices, count = build_stack(msbwt, stack, indices, shared_next, q)
-        counts.append([count])
+        counts.append(count)
         counter += 1
         if (counter & 1023) == 0:
             print time.time() - start, counter
@@ -93,8 +121,8 @@ def generate_counts(bwtfile, probe_file, out_file):
     print 'Finish: {}'.format(finish-start)
     with open(out_file, 'wb') as outfile:
         wr = csv.writer(outfile)
-        wr.writerow(['counts'])
-        wr.writerows(counts)
+        wr.writerow(['probeseq', 'vid', 'ptype', 'counts'])
+        wr.writerows([x+(y,) for x,y in itertools.izip(probesSorted, counts)])
     finish = time.time()
     print 'Wrote file: {}'.format(finish-start)
     
@@ -105,5 +133,4 @@ if __name__ == '__main__':
     parser.add_argument('out_file', help='Path to output file')
     args = parser.parse_args()
     generate_counts(args.bwt_file, args.probe_file, args.out_file)
-
 
