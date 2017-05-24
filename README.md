@@ -1,5 +1,5 @@
-# msbwtAnalyze
-Scripts for analyzing next-generation sequencing data using multi-string BWTs ([msBWTs](https://github.com/holtjma/msbwt)).
+# queryMsbwt
+Python scripts for querying multi-string BWTs ([msBWTs](https://github.com/holtjma/msbwt)).
 
 - `batchKmerCounter.py`: given a single probe file, query an msbwt for each kmer and record the resulting counts
 - `batchKmerCounterMultipleFiles.py`: given a set of probe files, query an msbwt for each kmer and record the resulting counts
