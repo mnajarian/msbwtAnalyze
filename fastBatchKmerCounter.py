@@ -19,7 +19,7 @@ import itertools
 def bwtsort(atup, btup):
     aseq = atup[0]
     bseq = btup[0]
-    for i in xrange(len(aseq)):
+    for i in xrange(min(len(aseq), len(bseq))):
         abase = aseq[-1-i]
         bbase = bseq[-1-i]
         if (abase > bbase):
@@ -33,11 +33,12 @@ def bwtsort(atup, btup):
             return -1
     return 0
 
-def gatherProbes(pf):
+def gatherProbes(pf, headers=False):
     probes = []
     with open(pf, 'rb') as f:
         reader = csv.reader(f)
-        next(reader)
+        if headers==True:
+		    next(reader)
         for row in reader:
             probes.append((row[0], row[1], row[2]))
     return probes
@@ -93,11 +94,11 @@ def get_shared_prefixes(seqs):
     shared.append(0)
     return shared
 
-def generate_counts(bwtfile, probe_file, out_file):
+def generate_counts(bwtfile, probe_file, out_file, headers=False):
     msbwt = MultiStringBWT.loadBWT(bwtfile)
     start = time.time()
     print 'Started: {}'.format(start)
-    probes = gatherProbes(probe_file)
+    probes = gatherProbes(probe_file, headers)
     probesSorted = sorted(probes, cmp=bwtsort)
     rev = [''.join([s for s in reversed(t)]) for t in [m[0] for m in probesSorted]]
     # PREPROCESSING STEP: for each query, get prefix index shared with NEXT query
@@ -131,6 +132,8 @@ if __name__ == '__main__':
     parser.add_argument('bwt_file', help='Path to BWT')
     parser.add_argument('probe_file', help='Path to probe files')
     parser.add_argument('out_file', help='Path to output file')
+    parser.add_argument('--headers', help='Flag for headers in the probe_file, default=False', default=False, action="store_true")
     args = parser.parse_args()
-    generate_counts(args.bwt_file, args.probe_file, args.out_file)
+	
+    generate_counts(args.bwt_file, args.probe_file, args.out_file, headers=args.headers)
 
