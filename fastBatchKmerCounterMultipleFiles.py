@@ -46,7 +46,10 @@ def build_stack(msbwt, stack, indices, shared_next, q):
         for i in range(0,shared_next-stack_end):
             p_lo, p_hi = indices[-1]
             stack.append(base+q[stack_end+i])
-            lo, hi = msbwt.findIndicesOfStr(q[stack_end+i], (p_lo, p_hi))
+            if (p_hi-p_lo) == 0: # early termination case
+                lo, hi = p_lo, p_hi
+            else:
+                lo, hi = msbwt.findIndicesOfStr(q[stack_end+i], (p_lo, p_hi))
             indices.append([lo, hi])
             base += q[stack_end+i]
         lo,hi = indices[-1]
@@ -108,7 +111,7 @@ def generate_counts(bwtfile, probe_files, out_dir):
             wr.writerows(counts)
         finish = time.time()
         print 'Wrote file: {}'.format(finish-start)
-        
+
     finish = time.time()
     print 'Wrote all files: {}'.format(finish-startTime)
 
