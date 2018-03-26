@@ -2,7 +2,7 @@
 
 ## --- msbwtAnalyze/fastBatchKmerCounter.py --- ##
 ##      Date: 18 May 2017
-##      Purpose: given a single probe file, query an msbwt using a fast stack implementation 
+##      Purpose: given a single probe file, query an msbwt using a fast stack implementation
 
 import pysam
 import MUSCython
@@ -94,12 +94,13 @@ def get_shared_prefixes(seqs):
     shared.append(0)
     return shared
 
-def generate_counts(bwtfile, probe_file, out_file, headers=False):
+def generate_counts(bwtfile, probe_file, out_file, sorted=True, headers=False):
     msbwt = MultiStringBWT.loadBWT(bwtfile)
     start = time.time()
     print 'Started: {}'.format(start)
-    probes = gatherProbes(probe_file, headers)
-    probesSorted = sorted(probes, cmp=bwtsort)
+    probesSorted = gatherProbes(probe_file, headers)
+    if not sorted:
+        probesSorted = sorted(probes, cmp=bwtsort)
     rev = [''.join([s for s in reversed(t)]) for t in [m[0] for m in probesSorted]]
     # PREPROCESSING STEP: for each query, get prefix index shared with NEXT query
     shared = get_shared_prefixes(rev)
@@ -126,14 +127,14 @@ def generate_counts(bwtfile, probe_file, out_file, headers=False):
         wr.writerows([x+(y,) for x,y in itertools.izip(probesSorted, counts)])
     finish = time.time()
     print 'Wrote file: {}'.format(finish-start)
-    
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('bwt_file', help='Path to BWT')
     parser.add_argument('probe_file', help='Path to probe files')
     parser.add_argument('out_file', help='Path to output file')
+    parser.add_argument('--sorted', help='Flag if the file is suffix sorted, default=True', default=True, action="store_false")
     parser.add_argument('--headers', help='Flag for headers in the probe_file, default=False', default=False, action="store_true")
     args = parser.parse_args()
-	
-    generate_counts(args.bwt_file, args.probe_file, args.out_file, headers=args.headers)
 
+    generate_counts(args.bwt_file, args.probe_file, args.out_file, sorted=args.sorted, headers=args.headers)
