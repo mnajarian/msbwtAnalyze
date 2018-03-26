@@ -2,7 +2,7 @@
 
 ## --- msbwtAnalyze/fastBatchKmerCounterMultipleFiles.py --- ##
 ##      Date: 17 March 2017
-##      Purpose: given probe files, query an msbwt using a fast stack implementation 
+##      Purpose: given probe files, query an msbwt using a fast stack implementation
 
 import pysam
 import MUSCython
@@ -73,46 +73,44 @@ def generate_counts(bwtfile, probe_files, out_dir):
     p_files = sorted(glob.glob(probe_files+'/*'))
     for probe_file in p_files:
         sixmer = os.path.splitext(probe_file)[0][-6:]
-        if os.path.isfile('{}/{}'.format(out_dir, os.path.basename(probe_file))):
-            continue
-        else:
-            print probe_file
-            print socket.gethostname()
-            start = time.time()
-            print 'Started: {}'.format(start)
-            
-            df = pd.read_csv(probe_file)
-            rev = [''.join([s for s in reversed(t)]) for t in df['probeseq']]
-            # PREPROCESSING STEP: for each query, get prefix index shared with NEXT query
-            shared = get_shared_prefixes(rev)
-        
-            sixmer_reverse = ''.join([s for s in reversed(sixmer)])
-            q_len = len(df['probeseq'].iloc[0]) - 6
-            stack = []
-            stack.append(sixmer_reverse)
-            indices = []
-            lo, hi = msbwt.findIndicesOfStr(sixmer)
-            indices.append([lo,hi])
-            counts = []
-            counter = 0
-            for row in df.itertuples():
-                q = ''.join([s for s in reversed(row[1])])
-                shared_next = shared[counter]
-                stack, indices, count = build_stack(msbwt, stack, indices, shared_next, q)
-                counts.append([count])
-                counter += 1
-                if (counter & 1023) == 0:
-                    print time.time() - start, counter
-            finish = time.time() 
-            print 'Finish: {}'.format(finish-start)
-            with open("{}/{}".format(out_dir, os.path.basename(probe_file)), 'w') as outfile:
-                wr = csv.writer(outfile)
-                wr.writerow(['counts'])
-                wr.writerows(counts)
-            finish = time.time()
-            print 'Wrote file: {}'.format(finish-start)
+        print probe_file
+        print socket.gethostname()
+        start = time.time()
+        print 'Started: {}'.format(start)
+
+        df = pd.read_csv(probe_file)
+        rev = [''.join([s for s in reversed(t)]) for t in df['probeseq']]
+        # PREPROCESSING STEP: for each query, get prefix index shared with NEXT query
+        shared = get_shared_prefixes(rev)
+
+        sixmer_reverse = ''.join([s for s in reversed(sixmer)])
+        q_len = len(df['probeseq'].iloc[0]) - 6
+        stack = []
+        stack.append(sixmer_reverse)
+        indices = []
+        lo, hi = msbwt.findIndicesOfStr(sixmer)
+        indices.append([lo,hi])
+        counts = []
+        counter = 0
+        for row in df.itertuples():
+            q = ''.join([s for s in reversed(row[1])])
+            shared_next = shared[counter]
+            stack, indices, count = build_stack(msbwt, stack, indices, shared_next, q)
+            counts.append([count])
+            counter += 1
+            if (counter & 1023) == 0:
+                print time.time() - start, counter
         finish = time.time()
-        print 'Wrote all files: {}'.format(finish-startTime)
+        print 'Finish: {}'.format(finish-start)
+        with open("{}/{}".format(out_dir, os.path.basename(probe_file)), 'w') as outfile:
+            wr = csv.writer(outfile)
+            wr.writerow(['counts'])
+            wr.writerows(counts)
+        finish = time.time()
+        print 'Wrote file: {}'.format(finish-start)
+        
+    finish = time.time()
+    print 'Wrote all files: {}'.format(finish-startTime)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -121,4 +119,3 @@ if __name__ == '__main__':
     parser.add_argument('out_dir', help='Path to output directory')
     args = parser.parse_args()
     generate_counts(args.bwt_file, args.probe_files, args.out_dir)
-
