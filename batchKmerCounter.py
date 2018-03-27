@@ -16,20 +16,21 @@ import argparse
 import socket
 import itertools
 
-def gatherProbes (pf):
+def gatherProbes (pf, headers=False):
     probes = []
     with open(pf, 'rb') as f:
         reader = csv.reader(f)
-        next(reader)
+        if headers==True:
+		    next(reader)
         for row in reader:
             probes.append((row[0], row[1], row[2]))
     return probes
 
-def generate_counts(bwtfile, probe_file, out_file):
+def generate_counts(bwtfile, probe_file, out_file, headers=False):
     msbwt = MultiStringBWT.loadBWT(bwtfile)
     start = time.time()
     print 'Started: {}'.format(start)
-    probes = gatherProbes(probe_file)
+    probes = gatherProbes(probe_file, headers)
     counts = []
     counter = 0
     for row in probes:
@@ -51,7 +52,6 @@ if __name__ == '__main__':
     parser.add_argument('bwt_file', help='Path to BWT')
     parser.add_argument('probe_file', help='Path to probe file')
     parser.add_argument('out_file', help='Path to output file')
+    parser.add_argument('--headers', help='Flag for headers in the probe_file, default=False', default=False, action="store_true")
     args = parser.parse_args()
     generate_counts(args.bwt_file, args.probe_file, args.out_file)
-
-
